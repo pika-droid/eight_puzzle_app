@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../domain/logic/tile_heuristic_calculator.dart';
 import 'retro_button.dart';
 
@@ -36,7 +36,7 @@ class HeuristicReportContent extends StatelessWidget {
                 child: Center(
                   child: Text(
                     report.tile.toString(),
-                    style: GoogleFonts.pressStart2p(
+                    style: AppTheme.retroTextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: textColor,
@@ -51,7 +51,7 @@ class HeuristicReportContent extends StatelessWidget {
                   children: [
                     Text(
                       'TILE INSPECTOR',
-                      style: GoogleFonts.pressStart2p(
+                      style: AppTheme.retroTextStyle(
                         fontSize: 14,
                         color: textColor,
                         fontWeight: FontWeight.bold,
@@ -104,7 +104,7 @@ class HeuristicReportContent extends StatelessWidget {
           // Heuristic values
           Text(
             'HEURISTIC ANALYSIS',
-            style: GoogleFonts.pressStart2p(
+            style: AppTheme.retroTextStyle(
               fontSize: 12,
               color: textColor,
               fontWeight: FontWeight.bold,
@@ -170,7 +170,7 @@ class HeuristicReportContent extends StatelessWidget {
         Expanded(
           child: Text(
             label.toUpperCase(),
-            style: GoogleFonts.pressStart2p(
+            style: AppTheme.retroTextStyle(
               color: textColor.withValues(alpha: 0.7),
               fontSize: 8,
             ),
@@ -178,7 +178,7 @@ class HeuristicReportContent extends StatelessWidget {
         ),
         Text(
           value,
-          style: GoogleFonts.pressStart2p(
+          style: AppTheme.retroTextStyle(
             color: valueColor ?? textColor,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -201,7 +201,7 @@ class HeuristicReportContent extends StatelessWidget {
         Expanded(
           child: Text(
             label.toUpperCase(),
-            style: GoogleFonts.pressStart2p(
+            style: AppTheme.retroTextStyle(
               color: textColor.withValues(alpha: 0.7),
               fontSize: 8,
             ),
@@ -209,7 +209,7 @@ class HeuristicReportContent extends StatelessWidget {
         ),
         Text(
           value,
-          style: GoogleFonts.pressStart2p(
+          style: AppTheme.retroTextStyle(
             color: valueColor ?? textColor,
             fontWeight: FontWeight.bold,
             fontSize: 10,

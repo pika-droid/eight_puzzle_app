@@ -80,4 +80,21 @@ class AppTheme {
   );
 
   static const List<AppTheme> values = [cosmic, nature, minimal, sunset];
+
+  static TextStyle retroTextStyle({
+    double? fontSize,
+    FontWeight? fontWeight,
+    Color? color,
+    double? height,
+    List<Shadow>? shadows,
+  }) {
+    return TextStyle(
+      fontFamily: 'Press Start 2P',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+      shadows: shadows,
+    );
+  }
 }

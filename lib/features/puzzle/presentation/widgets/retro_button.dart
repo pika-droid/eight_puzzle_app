@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class RetroButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -60,7 +60,7 @@ class RetroButton extends StatelessWidget {
           ],
           Text(
             label.toUpperCase(),
-            style: GoogleFonts.pressStart2p(
+            style: AppTheme.retroTextStyle(
               fontSize: isSmall ? 10 : 14,
               fontWeight: FontWeight.bold,
               color: isDisabled ? Colors.white38 : Colors.black,

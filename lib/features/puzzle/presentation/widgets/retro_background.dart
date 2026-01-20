@@ -44,16 +44,18 @@ class _RetroBackgroundState extends State<RetroBackground>
         children: [
           // Animated Grid
           Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _gridAnimationController,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: GridPainter(
-                    color: widget.gridColor.withValues(alpha: 0.2),
-                    scrollOffset: _gridAnimationController.value,
-                  ),
-                );
-              },
+            child: RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _gridAnimationController,
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: GridPainter(
+                      color: widget.gridColor.withValues(alpha: 0.2),
+                      scrollOffset: _gridAnimationController.value,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           // Content

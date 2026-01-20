@@ -41,36 +41,42 @@ class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, state) {
         final theme = state.theme;
-        return AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: theme.backgroundGradientColors,
-                  stops: [
-                    0.0,
-                    0.3 + 0.1 * math.sin(_controller.value * 2 * math.pi),
-                    0.7 + 0.1 * math.cos(_controller.value * 2 * math.pi),
-                    1.0,
-                  ],
+        return Stack(
+          children: [
+            // 1. Animated Gradient Layer (Background)
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: theme.backgroundGradientColors,
+                          stops: [
+                            0.0,
+                            0.3 +
+                                0.1 * math.sin(_controller.value * 2 * math.pi),
+                            0.7 +
+                                0.1 * math.cos(_controller.value * 2 * math.pi),
+                            1.0,
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
-              child: Stack(
-                children: [
-                  // Floating orbs
-                  ...List.generate(
-                    3,
-                    (index) => _buildFloatingOrb(index, theme),
-                  ),
-                  // Main content
-                  widget.child,
-                ],
-              ),
-            );
-          },
+            ),
+
+            // 2. Floating Orbs Layer (Mid-ground)
+            ...List.generate(3, (index) => _buildFloatingOrb(index, theme)),
+
+            // 3. Main Content Layer (Foreground) - Static relative to background animations
+            Positioned.fill(child: widget.child),
+          ],
         );
       },
     );

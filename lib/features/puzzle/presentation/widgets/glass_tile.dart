@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_theme.dart';
 
 import 'package:flutter/material.dart';
 
@@ -126,7 +126,7 @@ class GlassTile extends StatelessWidget {
               child: Center(
                 child: Text(
                   number.toString(),
-                  style: GoogleFonts.pressStart2p(
+                  style: AppTheme.retroTextStyle(
                     fontSize: size * 0.4,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

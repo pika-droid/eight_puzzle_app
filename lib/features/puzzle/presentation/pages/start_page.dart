@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_theme.dart';
 // import 'package:flutter_bloc/flutter_bloc.dart';
 // import '../bloc/puzzle_bloc.dart';
 // import '../bloc/puzzle_event.dart';
@@ -64,7 +64,7 @@ class _StartPageState extends State<StartPage>
     const midnightBlue = Color(0xFF000A1F); // #000A1F - Deep Midnight
     const neonCyan = Color(0xFF00F0FF); // #00F0FF - Neon Cyan
     final glassWhite = Colors.white.withValues(alpha: 0.1);
-    final textStyle = GoogleFonts.pressStart2p(color: Colors.white);
+    final textStyle = AppTheme.retroTextStyle(color: Colors.white);
 
     return Scaffold(
       backgroundColor: midnightBlue,
@@ -72,16 +72,18 @@ class _StartPageState extends State<StartPage>
         children: [
           // 1. Abstract 3D Grid Background (Animated)
           Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _gridAnimationController,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: GridPainter(
-                    color: neonCyan.withValues(alpha: 0.2),
-                    scrollOffset: _gridAnimationController.value,
-                  ),
-                );
-              },
+            child: RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _gridAnimationController,
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: GridPainter(
+                      color: neonCyan.withValues(alpha: 0.2),
+                      scrollOffset: _gridAnimationController.value,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
 
@@ -127,7 +129,7 @@ class _StartPageState extends State<StartPage>
                   // Title
                   Text(
                     '8-PUZZLE',
-                    style: GoogleFonts.pressStart2p(
+                    style: AppTheme.retroTextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -297,7 +299,7 @@ class _StartPageState extends State<StartPage>
                     ),
                     child: Text(
                       'START GAME',
-                      style: GoogleFonts.pressStart2p(
+                      style: AppTheme.retroTextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

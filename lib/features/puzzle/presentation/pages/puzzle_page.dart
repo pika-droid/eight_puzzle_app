@@ -11,7 +11,6 @@ import '../../domain/logic/game_generator.dart'; // For Difficulty
 import '../../domain/logic/tile_heuristic_calculator.dart';
 import '../bloc/puzzle_bloc.dart';
 import '../bloc/puzzle_event.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../bloc/puzzle_state.dart';
 import '../widgets/retro_background.dart';
 import '../widgets/retro_button.dart';
@@ -77,7 +76,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
         children: [
           Text(
             'RESUME GAME?',
-            style: GoogleFonts.pressStart2p(
+            style: AppTheme.retroTextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -87,7 +86,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
           Text(
             'You have a saved game with ${savedGame.moveCount} moves.\n'
             'Would you like to continue?',
-            style: GoogleFonts.pressStart2p(
+            style: AppTheme.retroTextStyle(
               fontSize: 12,
               color: Colors.white70,
               height: 1.5,
@@ -286,7 +285,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
                   appBar: AppBar(
                     title: Text(
                       '8 PUZZLE',
-                      style: GoogleFonts.pressStart2p(
+                      style: AppTheme.retroTextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -474,7 +473,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
                     'Long-press any tile to inspect',
-                    style: GoogleFonts.pressStart2p(
+                    style: AppTheme.retroTextStyle(
                       fontSize: 10,
                       color: Theme.of(context).colorScheme.outline,
                     ),
@@ -531,7 +530,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
                   SwitchListTile(
                     title: Text(
                       'HEURISTIC HEATMAP',
-                      style: GoogleFonts.pressStart2p(
+                      style: AppTheme.retroTextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -539,7 +538,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
                     ),
                     subtitle: Text(
                       'Show tile distance from goal',
-                      style: GoogleFonts.pressStart2p(
+                      style: AppTheme.retroTextStyle(
                         fontSize: 8,
                         color: Colors.white70,
                       ),
@@ -557,7 +556,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
                   SwitchListTile(
                     title: Text(
                       'SHADOW BOARD',
-                      style: GoogleFonts.pressStart2p(
+                      style: AppTheme.retroTextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -565,7 +564,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
                     ),
                     subtitle: Text(
                       'Show goal state as overlay',
-                      style: GoogleFonts.pressStart2p(
+                      style: AppTheme.retroTextStyle(
                         fontSize: 8,
                         color: Colors.white70,
                       ),
@@ -584,7 +583,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
                       children: [
                         Text(
                           'ANIMATING: ${state.currentStep + 1} / ${state.solutionPath.length}',
-                          style: GoogleFonts.pressStart2p(
+                          style: AppTheme.retroTextStyle(
                             fontSize: 12,
                             color: Colors.white,
                           ),
@@ -627,7 +626,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
               const SizedBox(width: 8),
               Text(
                 label.toUpperCase(),
-                style: GoogleFonts.pressStart2p(
+                style: AppTheme.retroTextStyle(
                   fontSize: 10,
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -637,7 +636,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.pressStart2p(fontSize: 16, color: Colors.white),
+            style: AppTheme.retroTextStyle(fontSize: 16, color: Colors.white),
           ),
         ],
       ),

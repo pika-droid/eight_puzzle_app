@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_theme.dart';
 
 import '../../domain/logic/efficiency_calculator.dart';
 import 'glass_dialog.dart';
@@ -47,7 +47,7 @@ class VictoryDialog extends StatelessWidget {
               Flexible(
                 child: Text(
                   'PUZZLE SOLVED!',
-                  style: GoogleFonts.pressStart2p(
+                  style: AppTheme.retroTextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -70,7 +70,7 @@ class VictoryDialog extends StatelessWidget {
             child: Center(
               child: Text(
                 grade,
-                style: GoogleFonts.pressStart2p(
+                style: AppTheme.retroTextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: gradeColor,
@@ -83,10 +83,7 @@ class VictoryDialog extends StatelessWidget {
           // Grade description
           Text(
             description,
-            style: GoogleFonts.pressStart2p(
-              fontSize: 12,
-              color: Colors.white70,
-            ),
+            style: AppTheme.retroTextStyle(fontSize: 12, color: Colors.white70),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -159,7 +156,7 @@ class VictoryDialog extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               label,
-              style: GoogleFonts.pressStart2p(
+              style: AppTheme.retroTextStyle(
                 fontSize: 10,
                 color: Colors.white70,
               ),
@@ -168,7 +165,7 @@ class VictoryDialog extends StatelessWidget {
         ),
         Text(
           value,
-          style: GoogleFonts.pressStart2p(fontSize: 14, color: Colors.white),
+          style: AppTheme.retroTextStyle(fontSize: 14, color: Colors.white),
         ),
       ],
     );
