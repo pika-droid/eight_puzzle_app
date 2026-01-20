@@ -45,6 +45,8 @@ class PuzzleLoaded extends PuzzleState {
 
   /// Time elapsed in seconds.
   final int secondsElapsed;
+  final int? moveLimit;
+  final String? difficulty;
 
   const PuzzleLoaded({
     required this.boardState,
@@ -57,6 +59,8 @@ class PuzzleLoaded extends PuzzleState {
     this.showShadowBoard = false,
     this.optimalMoveCount,
     this.secondsElapsed = 0,
+    this.moveLimit,
+    this.difficulty,
   });
 
   @override
@@ -71,6 +75,8 @@ class PuzzleLoaded extends PuzzleState {
     showShadowBoard,
     optimalMoveCount,
     secondsElapsed,
+    moveLimit,
+    difficulty,
   ];
 
   PuzzleLoaded copyWith({
@@ -84,6 +90,8 @@ class PuzzleLoaded extends PuzzleState {
     bool? showShadowBoard,
     int? optimalMoveCount,
     int? secondsElapsed,
+    int? moveLimit,
+    String? difficulty,
   }) {
     return PuzzleLoaded(
       boardState: boardState ?? this.boardState,
@@ -96,6 +104,8 @@ class PuzzleLoaded extends PuzzleState {
       showShadowBoard: showShadowBoard ?? this.showShadowBoard,
       optimalMoveCount: optimalMoveCount ?? this.optimalMoveCount,
       secondsElapsed: secondsElapsed ?? this.secondsElapsed,
+      moveLimit: moveLimit ?? this.moveLimit,
+      difficulty: difficulty ?? this.difficulty,
     );
   }
 }

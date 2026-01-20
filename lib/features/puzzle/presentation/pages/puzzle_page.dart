@@ -7,18 +7,29 @@ import '../../../../core/services/audio_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/theme_bloc.dart';
 import '../../data/game_storage_service.dart';
+import '../../domain/logic/game_generator.dart'; // For Difficulty
 import '../../domain/logic/tile_heuristic_calculator.dart';
 import '../bloc/puzzle_bloc.dart';
 import '../bloc/puzzle_event.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../bloc/puzzle_state.dart';
-import '../widgets/animated_gradient_background.dart';
+import '../widgets/retro_background.dart';
+import '../widgets/retro_button.dart';
+import '../widgets/retro_container.dart';
 import '../widgets/animated_puzzle_grid.dart';
 import '../widgets/glass_dialog.dart';
 import '../widgets/heuristic_report_dialog.dart';
 import '../widgets/victory_dialog.dart';
 
 class PuzzlePage extends StatefulWidget {
-  const PuzzlePage({super.key});
+  final Difficulty difficulty;
+  final bool isMoveBudgetEnabled;
+
+  const PuzzlePage({
+    super.key,
+    this.difficulty = Difficulty.medium,
+    this.isMoveBudgetEnabled = false,
+  });
 
   @override
   State<PuzzlePage> createState() => _PuzzlePageState();
@@ -58,23 +69,49 @@ class _PuzzlePageState extends State<PuzzlePage> {
     final savedGame = await _storageService.loadGame();
     if (savedGame == null || !context.mounted) return;
 
-    final shouldResume = await showDialog<bool>(
+    final shouldResume = await showGlassDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Resume Game?'),
-        content: Text(
-          'You have a saved game with ${savedGame.moveCount} moves.\n'
-          'Would you like to continue?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('New Game'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'RESUME GAME?',
+            style: GoogleFonts.pressStart2p(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Resume'),
+          const SizedBox(height: 16),
+          Text(
+            'You have a saved game with ${savedGame.moveCount} moves.\n'
+            'Would you like to continue?',
+            style: GoogleFonts.pressStart2p(
+              fontSize: 12,
+              color: Colors.white70,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              RetroButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                label: 'NEW GAME',
+                baseColor: Colors.redAccent,
+                isSmall: true,
+              ),
+              const SizedBox(width: 8),
+              RetroButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                label: 'RESUME',
+                baseColor: Colors.greenAccent,
+                isSmall: true,
+              ),
+            ],
           ),
         ],
       ),
@@ -89,6 +126,8 @@ class _PuzzlePageState extends State<PuzzlePage> {
           moveCount: savedGame.moveCount,
           undoStack: savedGame.undoStack,
           redoStack: savedGame.redoStack,
+          moveLimit: savedGame.moveLimit,
+          difficulty: savedGame.difficulty,
         ),
       );
     } else {
@@ -132,7 +171,13 @@ class _PuzzlePageState extends State<PuzzlePage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PuzzleBloc()..add(const LoadPuzzle()),
+      create: (_) => PuzzleBloc()
+        ..add(
+          LoadPuzzle(
+            difficulty: widget.difficulty.toString(),
+            isMoveBudgetEnabled: widget.isMoveBudgetEnabled,
+          ),
+        ),
       child: Builder(
         builder: (context) {
           // Check for saved game only once after first frame
@@ -145,33 +190,79 @@ class _PuzzlePageState extends State<PuzzlePage> {
 
           return MultiBlocListener(
             listeners: [
+              // 1. Move Sound Listener
               BlocListener<PuzzleBloc, PuzzleState>(
                 listenWhen: (previous, current) {
-                  // Play move sound if move count increased (and not initial load/solve animation)
-                  if (previous is PuzzleLoaded &&
+                  return previous is PuzzleLoaded &&
                       current is PuzzleLoaded &&
-                      current.moveCount > previous.moveCount) {
-                    return true;
-                  }
-                  return false;
+                      current.moveCount > previous.moveCount;
                 },
                 listener: (context, state) {
                   _audioService.playMoveSound();
                 },
               ),
+              // 2. Animation Timer Listener
               BlocListener<PuzzleBloc, PuzzleState>(
+                listenWhen: (previous, current) {
+                  // Only react to changes involving PuzzleSolved or exiting it
+                  return (previous is! PuzzleSolved &&
+                          current is PuzzleSolved) ||
+                      (previous is PuzzleSolved && current is! PuzzleSolved);
+                },
                 listener: (context, state) {
                   if (state is PuzzleSolved) {
                     _startAnimationTimer(context);
-                    if (state.currentStep == 0) {
-                      _audioService.playSolveSound();
-                    }
                   } else {
                     _stopAnimationTimer();
                   }
-
+                },
+              ),
+              // 3. Victory & Error Listener
+              BlocListener<PuzzleBloc, PuzzleState>(
+                listener: (context, state) {
+                  // Victory Sound & Dialog
                   if (state is PuzzleLoaded && state.isSolved) {
-                    // Show victory dialog with efficiency rating
+                    // We only want to play sound/show dialog if we weren't already settled in solved state.
+                    // However, PuzzleBloc emits new states (e.g. invalid moves) that might keep isSolved=true.
+                    // But we only show victory dialog once usually.
+                    // Let's rely on the transition check in listenWhen or simpler logic:
+                    // Just play sound. The user won't likely trigger other events while dialog is up.
+
+                    // Actually, we need to be careful not to spam.
+                    // The standard way is checking if we *just* became solved.
+                    // Since we can't access 'previous' here easily without listenWhen,
+                    // let's use listenWhen below.
+                  }
+
+                  if (state is PuzzleError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: ${state.message}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+              ),
+              // 3b. Separate Victory Transition Listener for explicit 'previous' access
+              BlocListener<PuzzleBloc, PuzzleState>(
+                listenWhen: (previous, current) {
+                  if (current is PuzzleLoaded && current.isSolved) {
+                    // Trigger if we weren't solved before (Manual solve)
+                    if (previous is PuzzleLoaded && !previous.isSolved) {
+                      return true;
+                    }
+                    // Trigger if we just finished animating (Auto solve)
+                    if (previous is PuzzleSolved) {
+                      return true;
+                    }
+                  }
+                  return false;
+                },
+                listener: (context, state) {
+                  if (state is PuzzleLoaded) {
+                    _audioService.playSolveSound();
+
                     showDialog(
                       context: context,
                       barrierDismissible: false,
@@ -185,15 +276,6 @@ class _PuzzlePageState extends State<PuzzlePage> {
                       ),
                     );
                   }
-
-                  if (state is PuzzleError) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: ${state.message}'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
                 },
               ),
             ],
@@ -202,11 +284,18 @@ class _PuzzlePageState extends State<PuzzlePage> {
                 return Scaffold(
                   extendBodyBehindAppBar: true,
                   appBar: AppBar(
-                    title: const Text(
-                      '8 Puzzle',
-                      style: TextStyle(
+                    title: Text(
+                      '8 PUZZLE',
+                      style: GoogleFonts.pressStart2p(
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            color: Theme.of(context).colorScheme.primary,
+                            blurRadius: 10,
+                          ),
+                        ],
                       ),
                     ),
                     centerTitle: true,
@@ -346,7 +435,8 @@ class _PuzzlePageState extends State<PuzzlePage> {
         ? state.showShadowBoard
         : false;
 
-    return AnimatedGradientBackground(
+    return RetroBackground(
+      gridColor: Theme.of(context).colorScheme.primary,
       child: SafeArea(
         child: SingleChildScrollView(
           child: Center(
@@ -362,7 +452,10 @@ class _PuzzlePageState extends State<PuzzlePage> {
                       _buildInfoCard(
                         context,
                         label: 'Moves',
-                        value: '$moveCount',
+                        value:
+                            (state is PuzzleLoaded && state.moveLimit != null)
+                            ? '$moveCount / ${state.moveLimit}'
+                            : '$moveCount',
                         icon: Icons.swap_calls,
                       ),
                       const SizedBox(width: 16),
@@ -381,7 +474,8 @@ class _PuzzlePageState extends State<PuzzlePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
                     'Long-press any tile to inspect',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: GoogleFonts.pressStart2p(
+                      fontSize: 10,
                       color: Theme.of(context).colorScheme.outline,
                     ),
                   ),
@@ -435,8 +529,21 @@ class _PuzzlePageState extends State<PuzzlePage> {
                 // Heuristic overlay toggle
                 if (state is PuzzleLoaded)
                   SwitchListTile(
-                    title: const Text('Heuristic Heatmap'),
-                    subtitle: const Text('Show tile distance from goal'),
+                    title: Text(
+                      'HEURISTIC HEATMAP',
+                      style: GoogleFonts.pressStart2p(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Show tile distance from goal',
+                      style: GoogleFonts.pressStart2p(
+                        fontSize: 8,
+                        color: Colors.white70,
+                      ),
+                    ),
                     value: showHeuristicOverlay,
                     onChanged: (_) {
                       context.read<PuzzleBloc>().add(
@@ -448,8 +555,21 @@ class _PuzzlePageState extends State<PuzzlePage> {
                 // Shadow board toggle
                 if (state is PuzzleLoaded)
                   SwitchListTile(
-                    title: const Text('Shadow Board'),
-                    subtitle: const Text('Show goal state as overlay'),
+                    title: Text(
+                      'SHADOW BOARD',
+                      style: GoogleFonts.pressStart2p(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Show goal state as overlay',
+                      style: GoogleFonts.pressStart2p(
+                        fontSize: 8,
+                        color: Colors.white70,
+                      ),
+                    ),
                     value: showShadowBoard,
                     onChanged: (_) {
                       context.read<PuzzleBloc>().add(const ToggleShadowBoard());
@@ -463,8 +583,11 @@ class _PuzzlePageState extends State<PuzzlePage> {
                     child: Column(
                       children: [
                         Text(
-                          'Animating: ${state.currentStep + 1} / ${state.solutionPath.length}',
-                          style: Theme.of(context).textTheme.bodyLarge,
+                          'ANIMATING: ${state.currentStep + 1} / ${state.solutionPath.length}',
+                          style: GoogleFonts.pressStart2p(
+                            fontSize: 12,
+                            color: Colors.white,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         LinearProgressIndicator(
@@ -489,13 +612,9 @@ class _PuzzlePageState extends State<PuzzlePage> {
     required String value,
     required IconData icon,
   }) {
-    return Container(
+    return RetroContainer(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+      borderColor: Theme.of(context).colorScheme.primary,
       child: Column(
         children: [
           Row(
@@ -505,23 +624,20 @@ class _PuzzlePageState extends State<PuzzlePage> {
                 size: 16,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
               Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+                label.toUpperCase(),
+                style: GoogleFonts.pressStart2p(
+                  fontSize: 10,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontFeatures: [const FontFeature.tabularFigures()],
-            ),
+            style: GoogleFonts.pressStart2p(fontSize: 16, color: Colors.white),
           ),
         ],
       ),
@@ -536,12 +652,13 @@ class _PuzzlePageState extends State<PuzzlePage> {
 
   Widget? _buildFAB(BuildContext context, PuzzleState state) {
     if (state is PuzzleLoaded && !state.isSolved) {
-      return FloatingActionButton.extended(
+      return RetroButton(
         onPressed: () {
           context.read<PuzzleBloc>().add(const StartAutoSolve());
         },
         icon: const Icon(Icons.auto_fix_high),
-        label: const Text('Solve with AI'),
+        label: 'AI SOLVE',
+        baseColor: Theme.of(context).colorScheme.primary,
       );
     }
     return null;

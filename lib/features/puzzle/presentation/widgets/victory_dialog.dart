@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../domain/logic/efficiency_calculator.dart';
+import 'glass_dialog.dart';
+import 'retro_button.dart';
 
 /// Dialog displayed when the puzzle is solved.
 ///
@@ -32,17 +35,29 @@ class VictoryDialog extends StatelessWidget {
       EfficiencyCalculator.getGradeColorValue(grade),
     );
 
-    return AlertDialog(
-      title: const Row(
-        children: [
-          Icon(Icons.celebration, color: Colors.amber, size: 28),
-          SizedBox(width: 8),
-          Flexible(child: Text('🎉 Puzzle Solved!')),
-        ],
-      ),
-      content: Column(
+    return GlassDialog(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.celebration, color: Colors.amber, size: 28),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'PUZZLE SOLVED!',
+                  style: GoogleFonts.pressStart2p(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
           // Grade badge
           Container(
             width: 80,
@@ -55,7 +70,7 @@ class VictoryDialog extends StatelessWidget {
             child: Center(
               child: Text(
                 grade,
-                style: TextStyle(
+                style: GoogleFonts.pressStart2p(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: gradeColor,
@@ -68,7 +83,10 @@ class VictoryDialog extends StatelessWidget {
           // Grade description
           Text(
             description,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: GoogleFonts.pressStart2p(
+              fontSize: 12,
+              color: Colors.white70,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -103,18 +121,20 @@ class VictoryDialog extends StatelessWidget {
               value: '${efficiency.toStringAsFixed(0)}%',
             ),
           ],
+
+          const SizedBox(height: 24),
+
+          RetroButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              onPlayAgain();
+            },
+            icon: const Icon(Icons.refresh),
+            label: 'PLAY AGAIN',
+            baseColor: Theme.of(context).colorScheme.primary,
+          ),
         ],
       ),
-      actions: [
-        FilledButton.icon(
-          onPressed: () {
-            Navigator.of(context).pop();
-            onPlayAgain();
-          },
-          icon: const Icon(Icons.refresh),
-          label: const Text('Play Again'),
-        ),
-      ],
     );
   }
 
@@ -137,12 +157,18 @@ class VictoryDialog extends StatelessWidget {
           children: [
             Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 8),
-            Text(label),
+            Text(
+              label,
+              style: GoogleFonts.pressStart2p(
+                fontSize: 10,
+                color: Colors.white70,
+              ),
+            ),
           ],
         ),
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: GoogleFonts.pressStart2p(fontSize: 14, color: Colors.white),
         ),
       ],
     );

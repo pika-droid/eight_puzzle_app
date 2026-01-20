@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/theme/theme_bloc.dart';
-import 'features/puzzle/presentation/pages/puzzle_page.dart';
+import 'features/puzzle/presentation/pages/start_page.dart';
 
 void main() {
   runApp(const EightPuzzleApp());
@@ -48,7 +48,7 @@ class EightPuzzleApp extends StatelessWidget {
           ),
         ),
         themeMode: ThemeMode.dark, // Default to dark for modern look
-        home: const PuzzlePage(),
+        home: const StartPage(),
       ),
     );
   }

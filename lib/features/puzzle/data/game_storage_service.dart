@@ -9,21 +9,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - Move count
 /// - Undo/redo history stacks
 class GameStorageService {
-  static const String _keyBoardState = 'puzzle_board_state';
-  static const String _keyMoveCount = 'puzzle_move_count';
-  static const String _keySecondsElapsed = 'puzzle_seconds_elapsed';
-  static const String _keyUndoStack = 'puzzle_undo_stack';
-  static const String _keyRedoStack = 'puzzle_redo_stack';
-  static const String _keySavedAt = 'puzzle_saved_at';
+  static const String _keyGameState = 'puzzle_game_state_v1';
 
   // Best score keys
   static const String _keyBestMoves = 'puzzle_best_moves';
   static const String _keyBestTime = 'puzzle_best_time';
 
+  SharedPreferences? _prefs;
+
+  Future<SharedPreferences> get _sharedPrefs async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
+  }
+
   /// Checks if a saved game exists.
   Future<bool> hasSavedGame() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(_keyBoardState);
+    final prefs = await _sharedPrefs;
+    return prefs.containsKey(_keyGameState);
   }
 
   /// Saves the current game state.
@@ -33,43 +35,60 @@ class GameStorageService {
     required int secondsElapsed,
     required List<List<int>> undoStack,
     required List<List<int>> redoStack,
+    int? moveLimit,
+    String? difficulty,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _sharedPrefs;
 
-    await prefs.setString(_keyBoardState, jsonEncode(boardState));
-    await prefs.setInt(_keyMoveCount, moveCount);
-    await prefs.setInt(_keySecondsElapsed, secondsElapsed);
-    await prefs.setString(_keyUndoStack, _encodeStackList(undoStack));
-    await prefs.setString(_keyRedoStack, _encodeStackList(redoStack));
-    await prefs.setString(_keySavedAt, DateTime.now().toIso8601String());
+    final Map<String, dynamic> data = {
+      'boardState': boardState,
+      'moveCount': moveCount,
+      'secondsElapsed': secondsElapsed,
+      'undoStack': undoStack,
+      'redoStack': redoStack,
+      'savedAt': DateTime.now().toIso8601String(),
+      'moveLimit': moveLimit,
+      'difficulty': difficulty,
+    };
+
+    await prefs.setString(_keyGameState, jsonEncode(data));
   }
 
   /// Loads a saved game state.
   ///
   /// Returns null if no saved game exists.
   Future<SavedGameState?> loadGame() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _sharedPrefs;
 
-    if (!prefs.containsKey(_keyBoardState)) {
+    if (!prefs.containsKey(_keyGameState)) {
       return null;
     }
 
     try {
-      final boardStateJson = prefs.getString(_keyBoardState);
-      final moveCount = prefs.getInt(_keyMoveCount) ?? 0;
-      final secondsElapsed = prefs.getInt(_keySecondsElapsed) ?? 0;
-      final undoStackJson = prefs.getString(_keyUndoStack);
-      final redoStackJson = prefs.getString(_keyRedoStack);
-      final savedAtString = prefs.getString(_keySavedAt);
+      final String? jsonString = prefs.getString(_keyGameState);
+      if (jsonString == null) return null;
 
-      if (boardStateJson == null) return null;
+      final Map<String, dynamic> data = jsonDecode(jsonString);
 
-      final boardState = List<int>.from(jsonDecode(boardStateJson));
-      final undoStack = _decodeStackList(undoStackJson);
-      final redoStack = _decodeStackList(redoStackJson);
+      final boardState = List<int>.from(data['boardState']);
+      final moveCount = data['moveCount'] as int;
+      final secondsElapsed = (data['secondsElapsed'] as int?) ?? 0;
+
+      final undoStack = (data['undoStack'] as List)
+          .map((e) => List<int>.from(e))
+          .toList();
+
+      final redoStack = (data['redoStack'] as List)
+          .map((e) => List<int>.from(e))
+          .toList();
+
+      final savedAtString = data['savedAt'] as String?;
       final savedAt = savedAtString != null
           ? DateTime.tryParse(savedAtString)
           : null;
+
+      final moveLimit = data['moveLimit'] as int?;
+      final difficulty = data['difficulty'] as String?;
 
       return SavedGameState(
         boardState: boardState,
@@ -78,6 +97,8 @@ class GameStorageService {
         undoStack: undoStack,
         redoStack: redoStack,
         savedAt: savedAt,
+        moveLimit: moveLimit,
+        difficulty: difficulty,
       );
     } catch (e) {
       // If decoding fails, clear the corrupted data
@@ -88,29 +109,8 @@ class GameStorageService {
 
   /// Clears the saved game.
   Future<void> clearSave() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyBoardState);
-    await prefs.remove(_keyMoveCount);
-    await prefs.remove(_keySecondsElapsed);
-    await prefs.remove(_keyUndoStack);
-    await prefs.remove(_keyRedoStack);
-    await prefs.remove(_keySavedAt);
-  }
-
-  /// Encodes a list of board states to JSON string.
-  String _encodeStackList(List<List<int>> stack) {
-    return jsonEncode(stack);
-  }
-
-  /// Decodes a JSON string to a list of board states.
-  List<List<int>> _decodeStackList(String? json) {
-    if (json == null) return [];
-    try {
-      final List<dynamic> decoded = jsonDecode(json);
-      return decoded.map((e) => List<int>.from(e)).toList();
-    } catch (_) {
-      return [];
-    }
+    final prefs = await _sharedPrefs;
+    await prefs.remove(_keyGameState);
   }
 
   /// Saves the best score if the new score is better.
@@ -120,7 +120,7 @@ class GameStorageService {
   /// - New moves < best moves
   /// - New moves == best moves AND new time < best time
   Future<void> saveBestScore(int moves, int seconds) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _sharedPrefs;
     final currentBestMoves = prefs.getInt(_keyBestMoves);
     final currentBestTime = prefs.getInt(_keyBestTime);
 
@@ -136,6 +136,9 @@ class GameStorageService {
     }
 
     if (shouldUpdate) {
+      // Best score is separate from game state, so we save these individually
+      // or we could bundle them too, but they are global app lifecycle
+      // whereas game state is session specific. Keeping them separate is fine.
       await prefs.setInt(_keyBestMoves, moves);
       await prefs.setInt(_keyBestTime, seconds);
     }
@@ -143,7 +146,7 @@ class GameStorageService {
 
   /// Gets the current best score.
   Future<BestScore?> getBestScore() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _sharedPrefs;
     final moves = prefs.getInt(_keyBestMoves);
     final time = prefs.getInt(_keyBestTime);
 
@@ -161,6 +164,8 @@ class SavedGameState {
   final List<List<int>> undoStack;
   final List<List<int>> redoStack;
   final DateTime? savedAt;
+  final int? moveLimit;
+  final String? difficulty;
 
   const SavedGameState({
     required this.boardState,
@@ -169,6 +174,8 @@ class SavedGameState {
     required this.undoStack,
     required this.redoStack,
     this.savedAt,
+    this.moveLimit,
+    this.difficulty,
   });
 }
 

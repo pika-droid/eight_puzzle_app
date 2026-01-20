@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -43,9 +44,9 @@ class AnimatedPuzzleGrid extends StatelessWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: theme.accentColor.withValues(alpha: 0.5),
               width: 2,
             ),
             boxShadow: [
@@ -57,7 +58,7 @@ class AnimatedPuzzleGrid extends StatelessWidget {
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(14),
             child: Padding(
               padding: const EdgeInsets.all(padding),
               child: Stack(
@@ -93,7 +94,7 @@ class AnimatedPuzzleGrid extends StatelessWidget {
           return Center(
             child: Text(
               goalTile.toString(),
-              style: TextStyle(
+              style: GoogleFonts.pressStart2p(
                 fontSize: tileSize * 0.4,
                 fontWeight: FontWeight.bold,
                 color: Colors.white.withValues(alpha: 0.1),

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/game_storage_service.dart';
+import '../../domain/logic/game_generator.dart';
 import '../../domain/logic/move_history.dart';
 import '../../domain/logic/puzzle_utils.dart';
 import '../../domain/logic/solver_isolate.dart';
@@ -69,8 +70,39 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   void _onLoadPuzzle(LoadPuzzle event, Emitter<PuzzleState> emit) {
-    final List<int> initialState =
-        event.initialState ?? _generateShuffledPuzzle();
+    List<int> initialState;
+    int? moveLimit;
+    Difficulty? difficultyEnum;
+
+    if (event.initialState != null) {
+      initialState = event.initialState!;
+    } else if (event.difficulty != null) {
+      // Parse difficulty from string
+      try {
+        difficultyEnum = Difficulty.values.firstWhere(
+          (e) => e.toString() == event.difficulty,
+        );
+        initialState = GameGenerator.generateBoard(difficultyEnum);
+
+        if (event.isMoveBudgetEnabled) {
+          switch (difficultyEnum) {
+            case Difficulty.easy:
+              moveLimit = 10;
+              break;
+            case Difficulty.medium:
+              moveLimit = 20;
+              break;
+            case Difficulty.hard:
+              moveLimit = 31;
+              break;
+          }
+        }
+      } catch (_) {
+        initialState = _generateShuffledPuzzle();
+      }
+    } else {
+      initialState = _generateShuffledPuzzle();
+    }
 
     // Clear history when loading a new puzzle
     _moveHistory.clear();
@@ -87,6 +119,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         canUndo: false,
         canRedo: false,
         secondsElapsed: 0,
+        moveLimit: moveLimit,
+        difficulty: event.difficulty,
       ),
     );
   }
@@ -303,6 +337,12 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         canUndo: false,
         canRedo: false,
         secondsElapsed: 0,
+        moveLimit: state is PuzzleLoaded
+            ? (state as PuzzleLoaded).moveLimit
+            : null,
+        difficulty: state is PuzzleLoaded
+            ? (state as PuzzleLoaded).difficulty
+            : null,
       ),
     );
 
@@ -342,7 +382,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         isSolved: _isGoal(event.boardState),
         canUndo: _moveHistory.canUndo,
         canRedo: _moveHistory.canRedo,
-        secondsElapsed: _secondsElapsed, // Using current (0) for now
+        secondsElapsed: _secondsElapsed,
+        moveLimit: event.moveLimit,
+        difficulty: event.difficulty,
       ),
     );
   }
@@ -355,6 +397,12 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       undoStack: _moveHistory.undoStackSnapshot,
       redoStack: _moveHistory.redoStackSnapshot,
       secondsElapsed: _secondsElapsed,
+      moveLimit: state is PuzzleLoaded
+          ? (state as PuzzleLoaded).moveLimit
+          : null,
+      difficulty: state is PuzzleLoaded
+          ? (state as PuzzleLoaded).difficulty
+          : null,
     );
   }
 

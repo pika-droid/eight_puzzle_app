@@ -1,6 +1,6 @@
 {
-    "name": "eight_puzzle_app",
-    "short_name": "eight_puzzle_app",
+    "name": "8-Puzzle Solver",
+    "short_name": "8-Puzzle Solver",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

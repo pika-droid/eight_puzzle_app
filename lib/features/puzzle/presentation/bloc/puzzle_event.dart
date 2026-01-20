@@ -11,11 +11,18 @@ abstract class PuzzleEvent extends Equatable {
 class LoadPuzzle extends PuzzleEvent {
   /// If null, generates a random solvable puzzle.
   final List<int>? initialState;
+  final String?
+  difficulty; // Using String to avoid circular dependency, or better Import Difficulty
+  final bool isMoveBudgetEnabled;
 
-  const LoadPuzzle({this.initialState});
+  const LoadPuzzle({
+    this.initialState,
+    this.difficulty,
+    this.isMoveBudgetEnabled = false,
+  });
 
   @override
-  List<Object?> get props => [initialState];
+  List<Object?> get props => [initialState, difficulty, isMoveBudgetEnabled];
 }
 
 /// Move a tile at the given position (swaps with adjacent empty tile).
@@ -65,16 +72,27 @@ class ResumeSavedGame extends PuzzleEvent {
   final int moveCount;
   final List<List<int>> undoStack;
   final List<List<int>> redoStack;
+  final int? moveLimit;
+  final String? difficulty;
 
   const ResumeSavedGame({
     required this.boardState,
     required this.moveCount,
     required this.undoStack,
     required this.redoStack,
+    this.moveLimit,
+    this.difficulty,
   });
 
   @override
-  List<Object?> get props => [boardState, moveCount, undoStack, redoStack];
+  List<Object?> get props => [
+    boardState,
+    moveCount,
+    undoStack,
+    redoStack,
+    moveLimit,
+    difficulty,
+  ];
 }
 
 /// Toggle the shadow board (goal state overlay) visibility.

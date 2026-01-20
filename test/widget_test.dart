@@ -23,7 +23,8 @@ void main() {
     // which causes pumpAndSettle to time out.
     await tester.pump(const Duration(seconds: 1));
 
-    // Verify that our app initializes with the puzzle page.
-    expect(find.text('8 Puzzle'), findsOneWidget);
+    // Verify that our app initializes with the start page.
+    expect(find.text('8-PUZZLE'), findsOneWidget);
+    expect(find.text('START GAME'), findsOneWidget);
   });
 }

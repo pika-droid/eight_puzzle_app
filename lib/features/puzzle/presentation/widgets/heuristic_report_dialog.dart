@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:google_fonts/google_fonts.dart';
 import '../../domain/logic/tile_heuristic_calculator.dart';
+import 'retro_button.dart';
 
 /// Dialog content that displays the heuristic report for a tile.
 class HeuristicReportContent extends StatelessWidget {
@@ -34,7 +36,7 @@ class HeuristicReportContent extends StatelessWidget {
                 child: Center(
                   child: Text(
                     report.tile.toString(),
-                    style: TextStyle(
+                    style: GoogleFonts.pressStart2p(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: textColor,
@@ -48,8 +50,9 @@ class HeuristicReportContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tile Inspector',
-                      style: theme.textTheme.titleLarge?.copyWith(
+                      'TILE INSPECTOR',
+                      style: GoogleFonts.pressStart2p(
+                        fontSize: 14,
                         color: textColor,
                         fontWeight: FontWeight.bold,
                       ),
@@ -62,7 +65,8 @@ class HeuristicReportContent extends StatelessWidget {
                         color: report.isCorrectPosition
                             ? Colors.greenAccent
                             : Colors.orangeAccent,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
                       ),
                     ),
                   ],
@@ -99,8 +103,9 @@ class HeuristicReportContent extends StatelessWidget {
 
           // Heuristic values
           Text(
-            'Heuristic Analysis',
-            style: theme.textTheme.titleMedium?.copyWith(
+            'HEURISTIC ANALYSIS',
+            style: GoogleFonts.pressStart2p(
+              fontSize: 12,
               color: textColor,
               fontWeight: FontWeight.bold,
             ),
@@ -138,16 +143,11 @@ class HeuristicReportContent extends StatelessWidget {
 
           // Close button
           Center(
-            child: TextButton(
+            child: RetroButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.1),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
-              ),
-              child: Text('Close', style: TextStyle(color: textColor)),
+              label: 'CLOSE',
+              baseColor: Colors.white,
+              isSmall: true,
             ),
           ),
         ],
@@ -169,19 +169,19 @@ class HeuristicReportContent extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: Text(
-            label,
-            style: TextStyle(
+            label.toUpperCase(),
+            style: GoogleFonts.pressStart2p(
               color: textColor.withValues(alpha: 0.7),
-              fontSize: 14,
+              fontSize: 8,
             ),
           ),
         ),
         Text(
           value,
-          style: TextStyle(
+          style: GoogleFonts.pressStart2p(
             color: valueColor ?? textColor,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 12,
           ),
         ),
       ],
@@ -200,19 +200,19 @@ class HeuristicReportContent extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            label,
-            style: TextStyle(
+            label.toUpperCase(),
+            style: GoogleFonts.pressStart2p(
               color: textColor.withValues(alpha: 0.7),
-              fontSize: 14,
+              fontSize: 8,
             ),
           ),
         ),
         Text(
           value,
-          style: TextStyle(
+          style: GoogleFonts.pressStart2p(
             color: valueColor ?? textColor,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 10,
           ),
         ),
         if (detail != null) ...[
@@ -221,7 +221,7 @@ class HeuristicReportContent extends StatelessWidget {
             detail,
             style: TextStyle(
               color: textColor.withValues(alpha: 0.5),
-              fontSize: 12,
+              fontSize: 8,
             ),
           ),
         ],
