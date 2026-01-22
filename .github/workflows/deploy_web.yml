@@ -25,7 +25,9 @@ jobs:
         run: flutter pub get
 
       - name: Build Web
-        run: flutter build web --release --base-href /eight_puzzle_app/
+        run: |
+          flutter build web --release --base-href /eight_puzzle_app/
+          touch build/web/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
